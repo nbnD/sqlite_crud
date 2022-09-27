@@ -2,7 +2,19 @@ import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart' as sql;
 
 class DatabaseHelper {
-  static Future<void> createTables(sql.Database database) async {
+  
+
+  static Future<sql.Database> db() async {
+    return sql.openDatabase(
+      'flutterjunction.db',
+      version: 1,
+      onCreate: (sql.Database database, int version) async {
+        await createTables(database);
+      },
+    );
+  }
+
+static Future<void> createTables(sql.Database database) async {
     await database.execute("""CREATE TABLE items(
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         title TEXT,
@@ -12,19 +24,8 @@ class DatabaseHelper {
       """);
   }
 // id: the id of a item
-// title, description: name and description of your activity
+// title, description: name and description of  activity
 // created_at: the time that the item was created. It will be automatically handled by SQLite
-
-  static Future<sql.Database> db() async {
-    return sql.openDatabase(
-      'nabindhakal.db',
-      version: 1,
-      onCreate: (sql.Database database, int version) async {
-        await createTables(database);
-      },
-    );
-  }
-
   // Create new item 
   static Future<int> createItem(String? title, String? descrption) async {
     final db = await DatabaseHelper.db();
@@ -33,6 +34,11 @@ class DatabaseHelper {
     final id = await db.insert('items', data,
         conflictAlgorithm: sql.ConflictAlgorithm.replace);
     return id;
+
+    // When a UNIQUE constraint violation occurs,
+    // the pre-existing rows that are causing the constraint violation
+    // are removed prior to inserting or updating the current row.
+    // Thus the insert or update always occurs.
   }
 
   // Read all items 
